@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerHealth))]
 public class PlayerController : MonoBehaviour
 {
     public float moveSpeed = 4f;
@@ -11,20 +12,18 @@ public class PlayerController : MonoBehaviour
     public float footstepBaseRadius = 3f;
     public float lowStaminaBonus = 5f;
 
-    public InputActionReference moveInput;
-
     CharacterController controller;
     PlayerHealth health;
     float nextFootstepTime;
     Vector3 velocity;
 
-    private void Awake()
+    void Awake()
     {
         controller = GetComponent<CharacterController>();
         health = GetComponent<PlayerHealth>();
     }
 
-    private void Update()
+    void Update()
     {
         Move();
     }
@@ -34,15 +33,16 @@ public class PlayerController : MonoBehaviour
         if (controller.isGrounded && velocity.y < 0)
             velocity.y = -2f;
 
-        Vector2 input = moveInput.action.ReadValue<Vector2>();
-        Vector3 move = new Vector3(input.x, 0f, input.y) * moveSpeed;
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        Vector3 move = new Vector3(h, 0f, v) * moveSpeed;
 
         velocity.y += gravity * Time.deltaTime;
         move.y = velocity.y;
 
         controller.Move(move * Time.deltaTime);
 
-        // face the direction of movement
+        // face movement direction
         Vector3 hMove = new Vector3(move.x, 0f, move.z);
         if (hMove.sqrMagnitude > 0.01f)
         {
@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 15f * Time.deltaTime);
         }
 
-        // emit footstep sounds while moving
+        // emit footstep sound while moving
         if (hMove.sqrMagnitude > 0.01f && Time.time >= nextFootstepTime)
         {
             EmitFootstep();
@@ -63,10 +63,10 @@ public class PlayerController : MonoBehaviour
     {
         float radius = footstepBaseRadius;
 
-        // louder footsteps when stamina is low
+        // louder when stamina is low
         if (health.StaminaRatio < 0.3f)
             radius += lowStaminaBonus;
 
-        SoundEventBroadcaster.Broadcast(transform.position, radius);
+        GameEvents.OnSoundEmitted?.Invoke(transform.position, radius / footstepBaseRadius);
     }
 }

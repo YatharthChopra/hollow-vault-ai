@@ -1,54 +1,48 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+// handles torch toggle — F key turns it on/off
+// when lit: repels The Shade but boosts Sentinel vision range (the core tradeoff)
 public class TorchController : MonoBehaviour
 {
     public Light torchLight;
     public CryptSentinel sentinel;
     public float visionBoostAmount = 4f;
-    public InputActionReference torchToggleInput;
 
     public static bool IsLit { get; private set; }
 
-    bool boostedSentinel = false;
+    bool boosted = false;
 
-    private void Awake()
+    void Awake()
     {
         IsLit = false;
         if (torchLight != null) torchLight.enabled = false;
     }
 
-    private void OnEnable()
+    void Update()
     {
-        if (torchToggleInput != null)
-            torchToggleInput.action.performed += OnToggle;
+        if (Input.GetKeyDown(KeyCode.F))
+            ToggleTorch();
     }
 
-    private void OnDisable()
-    {
-        if (torchToggleInput != null)
-            torchToggleInput.action.performed -= OnToggle;
-    }
-
-    void OnToggle(InputAction.CallbackContext ctx)
+    void ToggleTorch()
     {
         IsLit = !IsLit;
         if (torchLight != null) torchLight.enabled = IsLit;
 
-        // boost sentinel vision when torch is on (tradeoff for repelling the shade)
+        // boost Sentinel vision when torch is on
         if (sentinel != null && sentinel.vision != null)
         {
-            if (IsLit && !boostedSentinel)
+            if (IsLit && !boosted)
             {
                 sentinel.vision.viewRadius += visionBoostAmount;
-                boostedSentinel = true;
+                boosted = true;
             }
-            else if (!IsLit && boostedSentinel)
+            else if (!IsLit && boosted)
             {
                 sentinel.vision.viewRadius -= visionBoostAmount;
-                boostedSentinel = false;
+                boosted = false;
             }
         }
     }

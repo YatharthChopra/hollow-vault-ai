@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -12,17 +11,16 @@ public class PlayerHealth : MonoBehaviour
     [HideInInspector] public float currentHP;
     [HideInInspector] public float currentStamina;
 
-    public UnityEvent onDeath;
-
+    // 0-1 ratio used by PlayerController to scale noise
     public float StaminaRatio => currentStamina / maxStamina;
 
-    private void Awake()
+    void Awake()
     {
         currentHP = maxHP;
         currentStamina = maxStamina;
     }
 
-    private void Update()
+    void Update()
     {
         // regen stamina over time
         if (currentStamina < maxStamina)
@@ -35,7 +33,7 @@ public class PlayerHealth : MonoBehaviour
         if (currentHP < 0) currentHP = 0;
 
         if (currentHP <= 0)
-            onDeath?.Invoke();
+            GameEvents.OnPlayerDied?.Invoke();
     }
 
     public void DrainStamina(float amount)
