@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
-using TMPro;
+
 
 // Crypt Sentinel — heavy undead guardian
 // Owns the FSM and switches between: Patrol, Investigate, Combat, Staggered, Rallying, Return
@@ -11,7 +11,7 @@ public class CryptSentinel : MonoBehaviour
     [Header("References")]
     public Transform playerTransform;
     public Transform[] patrolWaypoints;
-    public TextMeshProUGUI stateLabel;
+    public UnityEngine.UI.Text stateLabel;
 
     [Header("Movement")]
     public float patrolSpeed = 1.8f;

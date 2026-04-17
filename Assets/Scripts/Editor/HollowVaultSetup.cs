@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEditor;
-using TMPro;
+
 
 // Hollow Vault scene setup tool
 // Window -> Hollow Vault -> Setup Scene
@@ -169,8 +169,8 @@ public class HollowVaultSetup : EditorWindow
         canvas.AddComponent<UnityEngine.UI.CanvasScaler>();
         canvas.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-        TextMeshProUGUI sentinelLabel = CreateLabel(canvas, "SentinelLabel", new Vector2(10, -10));
-        TextMeshProUGUI shadeLabel    = CreateLabel(canvas, "ShadeLabel",    new Vector2(10, -40));
+        UnityEngine.UI.Text sentinelLabel = CreateLabel(canvas, "SentinelLabel", new Vector2(10, -10));
+        UnityEngine.UI.Text shadeLabel    = CreateLabel(canvas, "ShadeLabel",    new Vector2(10, -40));
 
         // ----------------------------------------------------------------
         // 9. Crypt Sentinel
@@ -244,12 +244,12 @@ public class HollowVaultSetup : EditorWindow
     }
 
     // helper — create a TMP label on the canvas
-    static TextMeshProUGUI CreateLabel(GameObject canvas, string name, Vector2 anchoredPos)
+    static UnityEngine.UI.Text CreateLabel(GameObject canvas, string name, Vector2 anchoredPos)
     {
         GameObject obj = new GameObject(name);
         obj.transform.parent = canvas.transform;
 
-        TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
+        UnityEngine.UI.Text tmp = obj.AddComponent<UnityEngine.UI.Text>();
         tmp.fontSize = 18;
         tmp.color = Color.white;
         tmp.text = name;

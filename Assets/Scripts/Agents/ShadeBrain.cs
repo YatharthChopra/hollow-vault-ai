@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using TMPro;
+
 
 // The Shade — spectral stalker that reacts to sound and light
 // Owns the FSM and switches between: Drift, Alert, Stalk, Hunt, Retreat, Rallied
@@ -12,7 +12,7 @@ public class ShadeBrain : MonoBehaviour
     [Header("References")]
     public Transform playerTransform;
     public Transform[] patrolWaypoints;
-    public TextMeshProUGUI stateLabel;
+    public UnityEngine.UI.Text stateLabel;
 
     [Header("Movement")]
     public float driftSpeed = 2.5f;
