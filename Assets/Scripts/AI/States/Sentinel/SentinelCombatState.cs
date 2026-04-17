@@ -1,17 +1,11 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// COMBAT state — Sentinel charges and attacks the player at melee range.
-///
-/// Transitions OUT:
-///   → STAGGERED  : Sentinel is hit by the player (TakeDamage called externally)
-///   → RALLYING   : HP drops below threshold and Shade is in range
-///   → RETURN     : player out of range / lost sight for > memoryDuration seconds
-/// </summary>
 public class SentinelCombatState : State
 {
-    private CryptSentinel s;
-    private float lostSightTime = -1f; // tracks when player left view cone
+    CryptSentinel s;
+    float lostSightTime = -1f;
 
     public SentinelCombatState(CryptSentinel sentinel) : base(sentinel)
     {
@@ -23,12 +17,10 @@ public class SentinelCombatState : State
         s.agent.speed = s.chaseSpeed;
         s.ShowAlertIcon(true);
         lostSightTime = -1f;
-        Debug.Log("[Sentinel] Entering COMBAT");
     }
 
     public override void Execute()
     {
-        // Always chase the player
         s.agent.SetDestination(s.player.position);
 
         bool sees = s.vision.CanSeePlayer(s.player);
@@ -39,10 +31,9 @@ public class SentinelCombatState : State
         }
         else
         {
-            // Start memory countdown when sight is lost
             if (lostSightTime < 0f) lostSightTime = Time.time;
 
-            // After memory expires → give up
+            // lost sight for too long, go back to patrol
             if (Time.time - lostSightTime > s.memoryDuration)
             {
                 s.ChangeState(new SentinelReturnState(s));
@@ -50,15 +41,7 @@ public class SentinelCombatState : State
             }
         }
 
-        // Check melee range (attack handled via animation event / separate component)
-        float distToPlayer = Vector3.Distance(s.transform.position, s.player.position);
-        if (distToPlayer < s.combatRange)
-        {
-            // Melee attack — damage dealt by weapon/animation event in inspector
-            // Here we just keep chasing; actual damage is triggered by Attack() below
-        }
-
-        // RALLYING CRY — trigger if HP low and not yet rallied
+        // trigger rallying cry if health is low
         if (s.currentHP <= s.rallyHPThreshold && !s.hasRallied)
         {
             s.ChangeState(new SentinelRallyingState(s));
@@ -68,20 +51,5 @@ public class SentinelCombatState : State
     public override void Exit()
     {
         s.ShowAlertIcon(false);
-        Debug.Log("[Sentinel] Exiting COMBAT");
-    }
-
-    // -------------------------------------------------------
-    // Called by an animation event on the Sentinel's attack clip
-    // -------------------------------------------------------
-    public void Attack()
-    {
-        float distToPlayer = Vector3.Distance(s.transform.position, s.player.position);
-        if (distToPlayer < s.combatRange)
-        {
-            PlayerHealth playerHealth = s.player.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
-                playerHealth.TakeDamage(20f);
-        }
     }
 }

@@ -1,15 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// DRIFT state — The Shade floats slowly along the room perimeter.
-/// Default idle behaviour.
-///
-/// Transitions OUT:
-///   → ALERT : sound detected within hearingRadius
-/// </summary>
 public class ShadeDriftState : State
 {
-    private ShadeBrain s;
+    ShadeBrain s;
 
     public ShadeDriftState(ShadeBrain shade) : base(shade)
     {
@@ -19,21 +14,19 @@ public class ShadeDriftState : State
     public override void Enter()
     {
         s.agent.speed = s.driftSpeed;
-        // Begin drifting to first waypoint (perimeter loop)
+
         if (s.patrolWaypoints.Length > 0)
             s.agent.SetDestination(s.patrolWaypoints[s.waypointIndex].position);
-        Debug.Log("[Shade] Entering DRIFT");
     }
 
     public override void Execute()
     {
-        // Advance along perimeter waypoints
+        // move along the perimeter waypoints
         if (s.patrolWaypoints.Length > 0)
         {
-            float dist = Vector3.Distance(
-                new Vector3(s.transform.position.x, 0f, s.transform.position.z),
-                new Vector3(s.patrolWaypoints[s.waypointIndex].position.x, 0f,
-                            s.patrolWaypoints[s.waypointIndex].position.z));
+            Vector3 myPos = new Vector3(s.transform.position.x, 0f, s.transform.position.z);
+            Vector3 targetPos = new Vector3(s.patrolWaypoints[s.waypointIndex].position.x, 0f, s.patrolWaypoints[s.waypointIndex].position.z);
+            float dist = Vector3.Distance(myPos, targetPos);
 
             if (dist < s.waypointReachedThreshold)
             {
@@ -42,7 +35,7 @@ public class ShadeDriftState : State
             }
         }
 
-        // Sound detection → ALERT
+        // react to sound
         if (s.hearing.heardSoundThisFrame)
         {
             s.lastKnownPlayerPos = s.hearing.lastHeardPosition;
@@ -52,6 +45,5 @@ public class ShadeDriftState : State
 
     public override void Exit()
     {
-        Debug.Log("[Shade] Exiting DRIFT");
     }
 }

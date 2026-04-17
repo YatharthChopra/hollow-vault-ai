@@ -1,17 +1,11 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// STALK state — Shade silently moves toward the last known sound origin.
-///
-/// Transitions OUT:
-///   → HUNT     : player within huntRange
-///   → ALERT    : sound location lost (no new sounds for alertTimeout seconds)
-///   → RETREAT  : torch detected
-/// </summary>
 public class ShadeStalkState : State
 {
-    private ShadeBrain s;
-    private float lastSoundTime;
+    ShadeBrain s;
+    float lastSoundTime;
 
     public ShadeStalkState(ShadeBrain shade) : base(shade)
     {
@@ -20,22 +14,21 @@ public class ShadeStalkState : State
 
     public override void Enter()
     {
-        s.agent.speed = s.driftSpeed; // Stalk at drift speed — silent approach
+        s.agent.speed = s.driftSpeed;
         s.agent.SetDestination(s.lastKnownPlayerPos);
         lastSoundTime = Time.time;
-        Debug.Log("[Shade] Entering STALK");
     }
 
     public override void Execute()
     {
-        // Torch → retreat
+        // torch spotted, run
         if (s.lightSense.DetectsTorch())
         {
             s.ChangeState(new ShadeRetreatState(s));
             return;
         }
 
-        // Refresh destination on new sound
+        // update destination if new sound heard
         if (s.hearing.heardSoundThisFrame)
         {
             s.lastKnownPlayerPos = s.hearing.lastHeardPosition;
@@ -43,7 +36,7 @@ public class ShadeStalkState : State
             lastSoundTime = Time.time;
         }
 
-        // Close enough → HUNT
+        // close enough to player, switch to hunt
         float distToPlayer = Vector3.Distance(s.transform.position, s.player.position);
         if (distToPlayer <= s.huntRange)
         {
@@ -51,7 +44,7 @@ public class ShadeStalkState : State
             return;
         }
 
-        // Sound faded — go back to alert
+        // sound has gone quiet, back to alert
         if (Time.time - lastSoundTime > s.alertTimeout)
         {
             s.ChangeState(new ShadeAlertState(s));
@@ -60,6 +53,5 @@ public class ShadeStalkState : State
 
     public override void Exit()
     {
-        Debug.Log("[Shade] Exiting STALK");
     }
 }

@@ -1,15 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// ALERT state — Shade orients toward the sound source, pausing briefly.
-///
-/// Transitions OUT:
-///   → STALK  : location confirmed (sound heard again / still active)
-///   → DRIFT  : sound fades (timeout, no new sounds)
-/// </summary>
 public class ShadeAlertState : State
 {
-    private ShadeBrain s;
+    ShadeBrain s;
 
     public ShadeAlertState(ShadeBrain shade) : base(shade)
     {
@@ -18,17 +13,18 @@ public class ShadeAlertState : State
 
     public override void Enter()
     {
-        s.agent.ResetPath(); // Pause and orient
-        // Face sound source
+        s.agent.ResetPath();
+
+        // face toward the sound
         Vector3 dir = (s.lastKnownPlayerPos - s.transform.position).normalized;
+        dir.y = 0f;
         if (dir != Vector3.zero)
-            s.transform.rotation = Quaternion.LookRotation(new Vector3(dir.x, 0f, dir.z));
-        Debug.Log("[Shade] Entering ALERT");
+            s.transform.rotation = Quaternion.LookRotation(dir);
     }
 
     public override void Execute()
     {
-        // If we hear the sound again → confirmed, begin stalking
+        // sound confirmed again, start stalking
         if (s.hearing.heardSoundThisFrame)
         {
             s.lastKnownPlayerPos = s.hearing.lastHeardPosition;
@@ -36,14 +32,14 @@ public class ShadeAlertState : State
             return;
         }
 
-        // Torch detected → retreat immediately
+        // torch spotted, retreat
         if (s.lightSense.DetectsTorch())
         {
             s.ChangeState(new ShadeRetreatState(s));
             return;
         }
 
-        // Timeout — sound faded, resume drifting
+        // sound faded, go back to drifting
         if (s.TimeInState() >= s.alertTimeout)
         {
             s.ChangeState(new ShadeDriftState(s));
@@ -52,6 +48,5 @@ public class ShadeAlertState : State
 
     public override void Exit()
     {
-        Debug.Log("[Shade] Exiting ALERT");
     }
 }

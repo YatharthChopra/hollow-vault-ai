@@ -1,14 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// RETREAT state — Shade flees from the torch toward the nearest shadow (perimeter waypoint).
-///
-/// Transitions OUT:
-///   → DRIFT : safe shadow reached AND torch extinguished
-/// </summary>
 public class ShadeRetreatState : State
 {
-    private ShadeBrain s;
+    ShadeBrain s;
 
     public ShadeRetreatState(ShadeBrain shade) : base(shade)
     {
@@ -17,19 +13,17 @@ public class ShadeRetreatState : State
 
     public override void Enter()
     {
-        s.agent.speed = s.huntSpeed; // flee fast
-        // Find furthest waypoint from player (shadow area)
+        s.agent.speed = s.huntSpeed;
         s.agent.SetDestination(FindShadowWaypoint());
-        Debug.Log("[Shade] Entering RETREAT");
     }
 
     public override void Execute()
     {
-        // Once torch is out AND we have reached shadow → resume drifting
         bool torchGone = !s.lightSense.DetectsTorch();
         float dist = s.agent.remainingDistance;
         bool arrived = dist < s.waypointReachedThreshold && !s.agent.pathPending;
 
+        // only resume once torch is out and we reached the shadow
         if (torchGone && arrived)
         {
             s.ChangeState(new ShadeDriftState(s));
@@ -38,21 +32,21 @@ public class ShadeRetreatState : State
 
     public override void Exit()
     {
-        Debug.Log("[Shade] Exiting RETREAT");
     }
 
-    // Pick the waypoint furthest from the player (dark corner)
-    private Vector3 FindShadowWaypoint()
+    // find the waypoint furthest from the player to hide in shadow
+    Vector3 FindShadowWaypoint()
     {
         Vector3 best = s.transform.position;
         float maxDist = 0f;
-        foreach (Transform wp in s.patrolWaypoints)
+
+        for (int i = 0; i < s.patrolWaypoints.Length; i++)
         {
-            float d = Vector3.Distance(wp.position, s.player.position);
+            float d = Vector3.Distance(s.patrolWaypoints[i].position, s.player.position);
             if (d > maxDist)
             {
                 maxDist = d;
-                best = wp.position;
+                best = s.patrolWaypoints[i].position;
             }
         }
         return best;

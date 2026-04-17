@@ -1,15 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// HUNT state — Shade locks onto the player and closes fast, draining stamina on contact.
-///
-/// Transitions OUT:
-///   → RETREAT  : torch detected
-///   → STALK    : player escapes beyond escapeRange
-/// </summary>
 public class ShadeHuntState : State
 {
-    private ShadeBrain s;
+    ShadeBrain s;
 
     public ShadeHuntState(ShadeBrain shade) : base(shade)
     {
@@ -19,25 +14,24 @@ public class ShadeHuntState : State
     public override void Enter()
     {
         s.agent.speed = s.huntSpeed;
-        Debug.Log("[Shade] Entering HUNT");
     }
 
     public override void Execute()
     {
-        // Torch → retreat immediately
+        // torch spotted, retreat
         if (s.lightSense.DetectsTorch())
         {
             s.ChangeState(new ShadeRetreatState(s));
             return;
         }
 
-        // Chase player directly
+        // chase the player
         s.agent.SetDestination(s.player.position);
         s.lastKnownPlayerPos = s.player.position;
 
         float distToPlayer = Vector3.Distance(s.transform.position, s.player.position);
 
-        // Stamina drain on contact
+        // drain stamina on contact
         if (distToPlayer < 1.0f)
         {
             PlayerHealth ph = s.player.GetComponent<PlayerHealth>();
@@ -45,7 +39,7 @@ public class ShadeHuntState : State
                 ph.DrainStamina(s.staminaDrainRate * Time.deltaTime);
         }
 
-        // Player escaped
+        // player escaped
         if (distToPlayer > s.escapeRange)
         {
             s.ChangeState(new ShadeStalkState(s));
@@ -54,6 +48,5 @@ public class ShadeHuntState : State
 
     public override void Exit()
     {
-        Debug.Log("[Shade] Exiting HUNT");
     }
 }
